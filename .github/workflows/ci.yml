@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }} ${{ matrix.arch }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { python: '3.12', arch: x64 }
+          - { python: '3.12', arch: x86 }
+          - { python: '3.9', arch: x64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: ${{ matrix.arch }}
+      - name: Packages
+        run: python -m pip install -r requirements.txt
+      - name: Compile
+        run: python -m compileall -q fathom_emu.py dumpulator minidump tools tests examples
+      - name: Import
+        run: python -c "import dumpulator, fathom_emu; print('dumpulator', dumpulator.__file__)"
+      - name: AVX instructions
+        run: python tests/test_avx.py
+      - name: End to end (a dump of a running process)
+        run: python tests/test_call.py
+
+  hosts:
+    name: emulator_host (MSVC)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        shell: pwsh
+        run: ./hosts/build.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emulator_host
+          path: hosts/*.exe

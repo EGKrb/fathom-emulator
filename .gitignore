@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+# built by hosts\build.ps1 (shipped in the release zips)
+hosts/*.exe
+*.obj
+# dumps and traces of local runs
+*.dmp
+*.trace32
+*.trace64
+/dist/
