@@ -17,6 +17,6 @@ First release as a repository of its own: the emulator of Fathom 1.9.0 (commit `
 - `fathom_emu.py`: `info`, `call`, `run`, `script`, `setup`; x64dbg traces of the emulated code.
 - New here: `tools/dump_process.py` (a full minidump of a running process), `hosts/build.ps1` (builds
   `emulator_host` for x64 and x86), `tests/test_call.py` (end to end, on a dump of a running
-  process), GitHub Actions on 64-bit and 32-bit Python.
+  process, 64-bit or 32-bit), GitHub Actions on dumps of 64-bit and 32-bit processes.
 
 [1.9.0]: https://github.com/EGKrb/fathom-emulator/releases/tag/v1.9.0

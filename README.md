@@ -23,7 +23,7 @@ published here with each Fathom release: version 1.9.0 is the emulator of Fathom
 
 ## Install
 
-Python 3.9 or later (64-bit for 64-bit processes, 32-bit for 32-bit ones), on Windows:
+64-bit Python 3.9 or later, on Windows (it emulates 64-bit and 32-bit processes):
 
 ```
 git clone https://github.com/EGKrb/fathom-emulator
@@ -31,8 +31,9 @@ cd fathom-emulator
 python -m pip install -r requirements.txt
 ```
 
-With 32-bit Python, add `--prefer-binary` (the latest capstone 5 has no 32-bit wheel and would be built
-from its sources).
+A 32-bit process is dumped by a 32-bit program: `tools\dump_process.py` run with 32-bit Python (it needs
+no package), Fathom's x32dbg, `procdump -ma`, or `C:\Windows\SysWOW64\taskmgr.exe`; a 64-bit dumper writes
+the WoW64 view of the process, which the emulator does not load.
 
 or the zip of a [release](https://github.com/EGKrb/fathom-emulator/releases), which also has the
 `emulator_host` programs built (`hosts\`, see [Child processes](#outside-the-process-windows-network-other-processes-com)).
@@ -455,7 +456,8 @@ python tests\test_call.py      # a dump of a running process: lstrlenA, RtlCompu
 python tests\test_avx.py       # the AVX / AVX2 / FMA / BMI instructions of avx.py against the CPU
 ```
 
-GitHub Actions runs both with 64-bit and 32-bit Python on every push. The tests of whole programs
+GitHub Actions runs both on every push, on dumps of a 64-bit and of a 32-bit process
+(`--child-python` names the 32-bit Python that starts and dumps the child). The tests of whole programs
 (threads, windows, child processes, network, Direct3D...) need Fathom's test programs and run there:
 [`extracmds/tests/test_emulator.py`](https://github.com/EGKrb/Fathom/blob/main/extracmds/tests/test_emulator.py).
 

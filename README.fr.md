@@ -41,8 +41,7 @@ Le détail de tout cela, et ses limites, est dans le [README anglais](README.md)
 
 ## Installation
 
-Python 3.9 ou plus récent (64 bits pour un processus 64 bits, 32 bits pour un processus 32 bits),
-sous Windows :
+Python 3.9 ou plus récent en 64 bits, sous Windows (il émule les processus 64 bits et 32 bits) :
 
 ```
 git clone https://github.com/EGKrb/fathom-emulator
@@ -50,8 +49,10 @@ cd fathom-emulator
 python -m pip install -r requirements.txt
 ```
 
-Avec Python 32 bits, ajouter `--prefer-binary` (le dernier capstone 5 n'a pas de wheel 32 bits et serait
-compilé depuis ses sources).
+Un processus 32 bits se vide avec un programme 32 bits : `tools\dump_process.py` lancé avec Python
+32 bits (il ne demande aucun paquet), x32dbg de Fathom, `procdump -ma` ou
+`C:\Windows\SysWOW64\taskmgr.exe` ; un outil 64 bits écrit la vue WoW64 du processus, que l'émulateur ne
+charge pas.
 
 ou le zip d'une [release](https://github.com/EGKrb/fathom-emulator/releases), qui contient aussi les
 programmes `emulator_host` compilés (`hosts\`, pour les processus enfants de l'autre architecture ;
@@ -109,7 +110,8 @@ python tests\test_call.py      # le dump d'un processus en cours : lstrlenA, Rtl
 python tests\test_avx.py       # les instructions AVX / AVX2 / FMA / BMI de avx.py comparées au processeur
 ```
 
-GitHub Actions les exécute avec Python 64 bits et 32 bits à chaque push. Les tests de programmes
+GitHub Actions les exécute à chaque push, sur les dumps d'un processus 64 bits et d'un processus
+32 bits (`--child-python` désigne le Python 32 bits qui lance et vide l'enfant). Les tests de programmes
 entiers (threads, fenêtres, processus enfants, réseau, Direct3D...) demandent les programmes de test
 de Fathom et s'exécutent là-bas :
 [`extracmds/tests/test_emulator.py`](https://github.com/EGKrb/Fathom/blob/main/extracmds/tests/test_emulator.py).

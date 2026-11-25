@@ -1,11 +1,14 @@
-"""End-to-end test of the emulator: a full minidump of a running process (a child started for the test, of the
-same architecture as this Python), then fathom_emu.py calls lstrlenA("hello") and RtlComputeCrc32 in it and
+"""End-to-end test of the emulator: a full minidump of a running process (a child started for the test),
+then fathom_emu.py calls lstrlenA("hello") and RtlComputeCrc32 in it and
 runs examples/crc_strings.py.
 
-    python tests/test_call.py
+    python tests/test_call.py [--child-python PYTHON]
 
-Exit code 0 when the results are right. Needs the packages of requirements.txt.
+The emulator runs on this Python (64-bit: it emulates 64-bit and 32-bit processes). --child-python names
+another Python, 32-bit for instance, that starts the child and dumps it (a 32-bit process is dumped by a
+32-bit program). Exit code 0 when the results are right. Needs the packages of requirements.txt.
 """
+import argparse
 import json
 import os
 import subprocess
@@ -34,16 +37,29 @@ def emulate(*arguments) -> dict:
 
 
 def main() -> int:
-    # a process of this architecture that waits: Python itself, sleeping
-    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(600)"])
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("--child-python", help="the Python that starts the child and dumps it (default: this one)")
+    parser.add_argument("--expect-arch", choices=("x64", "x86"), help="fail unless the dump is of this architecture")
+    options = parser.parse_args()
+    python = options.child_python or sys.executable
+    # a process that waits: Python, sleeping
+    child = subprocess.Popen([python, "-c", "import time; time.sleep(600)"])
     with tempfile.TemporaryDirectory() as folder:
         dump = os.path.join(folder, "child.dmp")
         try:
-            dump_process(child.pid, dump)
+            if options.child_python:  # dumped by a program of its architecture
+                subprocess.run([python, os.path.join(ROOT, "tools", "dump_process.py"), str(child.pid), dump], check=True)
+            else:
+                dump_process(child.pid, dump)
         finally:
             child.kill()
             child.wait()
+        info = emulate("info", dump)
+        print(f"dump of a {info.get('arch')} process")
         failures = 0
+        if options.expect_arch and info.get("arch") != options.expect_arch:
+            print(f"expected a dump of a {options.expect_arch} process")
+            failures += 1
         result = emulate("call", dump, "kernel32!lstrlenA", "str:hello")
         value = int(result.get("return", "-1"), 0)
         print(f"lstrlenA(\"hello\") in the emulator: {value}")

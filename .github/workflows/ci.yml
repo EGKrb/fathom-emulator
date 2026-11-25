@@ -7,31 +7,46 @@ on:
 
 jobs:
   test:
-    name: Python ${{ matrix.python }} ${{ matrix.arch }}
+    name: Python ${{ matrix.python }}, ${{ matrix.process }} process
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { python: '3.12', arch: x64 }
-          - { python: '3.12', arch: x86 }
-          - { python: '3.9', arch: x64 }
+          - { python: '3.12', process: x64 }
+          - { python: '3.9', process: x64 }
+          # the emulator on 64-bit Python, a 32-bit process dumped by 32-bit Python (capstone has no working
+          # 32-bit wheel: the emulator itself runs on 64-bit Python for 32-bit processes too)
+          - { python: '3.12', process: x86 }
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
+        id: child
+        if: matrix.process == 'x86'
         with:
           python-version: ${{ matrix.python }}
-          architecture: ${{ matrix.arch }}
+          architecture: x86
+      - uses: actions/setup-python@v6
+        id: python
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
       - name: Packages
-        run: python -m pip install --prefer-binary -r requirements.txt  # capstone 5.0.9 has no 32-bit wheel
+        run: python -m pip install -r requirements.txt
       - name: Compile
         run: python -m compileall -q fathom_emu.py dumpulator minidump tools tests examples
       - name: Import
         run: python -c "import dumpulator, fathom_emu; print('dumpulator', dumpulator.__file__)"
       - name: AVX instructions
         run: python tests/test_avx.py
-      - name: End to end (a dump of a running process)
-        run: python tests/test_call.py
+      - name: End to end (a dump of a running ${{ matrix.process }} process)
+        shell: pwsh
+        run: |
+          if ('${{ matrix.process }}' -eq 'x86') {
+            python tests/test_call.py --child-python '${{ steps.child.outputs.python-path }}' --expect-arch x86
+          } else {
+            python tests/test_call.py --expect-arch x64
+          }
 
   hosts:
     name: emulator_host (MSVC)
