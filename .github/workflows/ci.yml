@@ -17,13 +17,13 @@ jobs:
           - { python: '3.12', arch: x86 }
           - { python: '3.9', arch: x64 }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.arch }}
       - name: Packages
-        run: python -m pip install -r requirements.txt
+        run: python -m pip install --prefer-binary -r requirements.txt  # capstone 5.0.9 has no 32-bit wheel
       - name: Compile
         run: python -m compileall -q fathom_emu.py dumpulator minidump tools tests examples
       - name: Import
@@ -37,11 +37,11 @@ jobs:
     name: emulator_host (MSVC)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build
         shell: pwsh
         run: ./hosts/build.ps1
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: emulator_host
           path: hosts/*.exe

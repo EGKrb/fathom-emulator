@@ -50,6 +50,9 @@ cd fathom-emulator
 python -m pip install -r requirements.txt
 ```
 
+Avec Python 32 bits, ajouter `--prefer-binary` (le dernier capstone 5 n'a pas de wheel 32 bits et serait
+compilé depuis ses sources).
+
 ou le zip d'une [release](https://github.com/EGKrb/fathom-emulator/releases), qui contient aussi les
 programmes `emulator_host` compilés (`hosts\`, pour les processus enfants de l'autre architecture ;
 `hosts\build.ps1` les compile avec MSVC).

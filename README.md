@@ -31,6 +31,9 @@ cd fathom-emulator
 python -m pip install -r requirements.txt
 ```
 
+With 32-bit Python, add `--prefer-binary` (the latest capstone 5 has no 32-bit wheel and would be built
+from its sources).
+
 or the zip of a [release](https://github.com/EGKrb/fathom-emulator/releases), which also has the
 `emulator_host` programs built (`hosts\`, see [Child processes](#outside-the-process-windows-network-other-processes-com)).
 
